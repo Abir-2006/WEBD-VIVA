@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import RecipeCard from '../components/RecipeCard';
+import { useTheme } from '../context/ThemeContext';
 
 const allRecipes = [
   {
@@ -70,24 +71,74 @@ const allRecipes = [
     difficulty: 'Medium',
     type: 'Vegetarian',
   },
+  {
+    id: 'butter-chicken',
+    name: 'Butter Chicken',
+    time: 50,
+    servings: 4,
+    image: 'https://www.whiskaffair.com/wp-content/uploads/2020/10/Butter-Chicken-2-1.jpg',
+    description: 'Tender chicken in a rich, creamy tomato-based curry — a timeless classic.',
+    cuisine: 'North India',
+    difficulty: 'Medium',
+    type: 'Non-Vegetarian',
+  },
+  {
+    id: 'fish-curry',
+    name: 'Goan Fish Curry',
+    time: 35,
+    servings: 4,
+    image: 'https://www.archanaskitchen.com/images/archanaskitchen/1-Author/Ruxana-Gafoor/Goan_Fish_Curry_Recipe_With_Kokum_by_Archanaskitchen.jpg',
+    description: 'Tangy, coconut-milk fish curry with Goan spices and kokum.',
+    cuisine: 'Maharashtra',
+    difficulty: 'Medium',
+    type: 'Non-Vegetarian',
+  },
+  {
+    id: 'mutton-curry',
+    name: 'Mutton Rogan Josh',
+    time: 90,
+    servings: 4,
+    image: 'https://www.cubesnjuliennes.com/wp-content/uploads/2020/07/Best-Mutton-Curry-Recipe.jpg',
+    description: 'Slow-cooked mutton in aromatic Kashmiri spices — bold and warming.',
+    cuisine: 'North India',
+    difficulty: 'Hard',
+    type: 'Non-Vegetarian',
+  },
 ];
 
-const popularCategories = [
+const popularCategoriesVeg = [
   { img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSdm2WEvdeCYKsdfcxy1drlrx57eF65mxHNYA&s', title: 'Rajasthani' },
   { img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqcHPqeel_jGEooO4XZoeBswuxs6-U_khGWA&s', title: 'North Indian' },
   { img: 'https://imgmediagumlet.lbb.in/media/2024/12/6763c390ad5b133601d57eed_1734591376530.jpg',       title: 'South Indian' },
   { img: 'https://dt4l9bx31tioh.cloudfront.net/eazymedia/eazytrendz/3108/trend20210413160402.jpg?width=750&height=436&mode=crop', title: 'Bengali Cuisine' },
 ];
 
+const popularCategoriesNonVeg = [
+  { img: 'https://www.licious.in/blog/wp-content/uploads/2022/06/chicken-hyderabadi-biryani-01.jpg', title: 'Biryani' },
+  { img: 'https://www.whiskaffair.com/wp-content/uploads/2020/10/Butter-Chicken-2-1.jpg',            title: 'Chicken' },
+  { img: 'https://www.archanaskitchen.com/images/archanaskitchen/1-Author/Ruxana-Gafoor/Goan_Fish_Curry_Recipe_With_Kokum_by_Archanaskitchen.jpg', title: 'Seafood' },
+  { img: 'https://www.cubesnjuliennes.com/wp-content/uploads/2020/07/Best-Mutton-Curry-Recipe.jpg',  title: 'Mutton' },
+];
+
 export default function Recipes() {
+  const { mode } = useTheme();
+  const isVeg = mode === 'veg';
+
   const [search, setSearch]         = useState('');
   const [filterCuisine, setCuisine] = useState('');
   const [filterTime, setTime]       = useState('');
   const [filterDiff, setDiff]       = useState('');
-  const [filterType, setType]       = useState('');
   const [modalRecipe, setModalRecipe] = useState(null);
   const [noteText, setNoteText]     = useState('');
   const [toastMsg, setToastMsg]     = useState('');
+
+  // Reset filters when mode changes
+  useEffect(() => {
+    setSearch('');
+    setCuisine('');
+    setTime('');
+    setDiff('');
+  }, [mode]);
 
   const showToast = (msg) => {
     setToastMsg(msg);
@@ -107,17 +158,21 @@ export default function Recipes() {
     showToast(`"${modalRecipe}" saved to your collection! 🎉`);
   };
 
+  const modeType = isVeg ? 'Vegetarian' : 'Non-Vegetarian';
+
   const filtered = allRecipes.filter((r) => {
+    if (r.type !== modeType) return false;
     const q = search.toLowerCase();
     if (q && !r.name.toLowerCase().includes(q) && !r.cuisine.toLowerCase().includes(q)) return false;
     if (filterCuisine && r.cuisine !== filterCuisine) return false;
     if (filterDiff && r.difficulty !== filterDiff) return false;
-    if (filterType && r.type !== filterType) return false;
     if (filterTime === '30 mins' && r.time > 30) return false;
     if (filterTime === '30-60 mins' && (r.time <= 30 || r.time > 60)) return false;
     if (filterTime === '> 60 mins' && r.time <= 60) return false;
     return true;
   });
+
+  const popularCategories = isVeg ? popularCategoriesVeg : popularCategoriesNonVeg;
 
   return (
     <>
@@ -130,16 +185,25 @@ export default function Recipes() {
         </div>
       )}
 
+      {/* Mode Banner */}
+      <div className="mode-banner">
+        {isVeg
+          ? '🥬 Browsing Vegetarian Recipes — wholesome, plant-based Indian cuisine'
+          : '🍗 Browsing Non-Vegetarian Recipes — bold, meaty Indian classics'}
+      </div>
+
       {/* Search & Filters */}
       <section id="recipes" className="container mt-5">
-        <h2 className="section-title">Explore Recipes</h2>
+        <h2 className="section-title">
+          {isVeg ? '🥬 Explore Veg Recipes' : '🍗 Explore Non-Veg Recipes'}
+        </h2>
 
         <div className="row mb-4">
           <div className="col-md-8 mx-auto">
             <input
               type="text"
               className="form-control"
-              placeholder="Search by name, cuisine, ingredient..."
+              placeholder={`Search ${isVeg ? 'veg' : 'non-veg'} recipes by name or cuisine...`}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -147,17 +211,17 @@ export default function Recipes() {
         </div>
 
         <div className="row g-3 mb-4">
-          <div className="col-md-3">
+          <div className="col-md-4">
             <select className="form-control" value={filterCuisine} onChange={(e) => setCuisine(e.target.value)}>
-              <option value="">Cuisine</option>
-              <option value="Punjab">North Indian</option>
-              <option value="West Bengal">South Indian</option>
-              <option value="South India">Bengali Cuisine</option>
-              <option value="North India">Rajasthani Food</option>
-              <option value="Rajasthan">Maharashtrian Special</option>
+              <option value="">All Cuisines</option>
+              <option value="North India">North India</option>
+              <option value="South India">South India</option>
+              <option value="West Bengal">West Bengal</option>
+              <option value="Maharashtra">Maharashtra</option>
+              <option value="Punjab">Punjab</option>
             </select>
           </div>
-          <div className="col-md-3">
+          <div className="col-md-4">
             <select className="form-control" value={filterTime} onChange={(e) => setTime(e.target.value)}>
               <option value="">Cooking Time</option>
               <option>30 mins</option>
@@ -165,7 +229,7 @@ export default function Recipes() {
               <option>{'> 60 mins'}</option>
             </select>
           </div>
-          <div className="col-md-3">
+          <div className="col-md-4">
             <select className="form-control" value={filterDiff} onChange={(e) => setDiff(e.target.value)}>
               <option value="">Difficulty</option>
               <option>Easy</option>
@@ -173,17 +237,12 @@ export default function Recipes() {
               <option>Hard</option>
             </select>
           </div>
-          <div className="col-md-3">
-            <select className="form-control" value={filterType} onChange={(e) => setType(e.target.value)}>
-              <option value="">Type</option>
-              <option>Vegetarian</option>
-              <option>Non-Vegetarian</option>
-            </select>
-          </div>
         </div>
 
         {/* Popular Categories */}
-        <h3 className="section-title mt-4">Popular Categories</h3>
+        <h3 className="section-title mt-4">
+          {isVeg ? 'Popular Veg Categories' : 'Popular Non-Veg Categories'}
+        </h3>
         <div className="d-flex overflow-auto pb-3" style={{ gap: '20px' }}>
           {popularCategories.map((c, i) => (
             <div key={i} className="recipe-card text-center flex-shrink-0" style={{ width: '300px' }}>

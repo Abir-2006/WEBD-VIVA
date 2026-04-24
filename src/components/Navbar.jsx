@@ -1,7 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
+import { useTheme } from '../context/ThemeContext';
 
 export default function Navbar() {
   const location = useLocation();
+  const { mode, setMode } = useTheme();
+
+  const isVeg = mode === 'veg';
 
   const links = [
     { to: '/',           label: 'Home' },
@@ -27,7 +31,7 @@ export default function Navbar() {
           <span className="navbar-toggler-icon"></span>
         </button>
         <div className="collapse navbar-collapse" id="navbarNav">
-          <ul className="navbar-nav ms-auto">
+          <ul className="navbar-nav ms-auto align-items-center">
             {links.map((link, i) => (
               <li className="nav-item" key={i}>
                 <Link
@@ -38,6 +42,26 @@ export default function Navbar() {
                 </Link>
               </li>
             ))}
+
+            {/* Veg / Non-Veg Toggle */}
+            <li className="nav-item ms-3">
+              <div className="diet-toggle" title={isVeg ? 'Switch to Non-Veg' : 'Switch to Veg'}>
+                <button
+                  className={`toggle-btn ${isVeg ? 'active' : ''}`}
+                  onClick={() => setMode('veg')}
+                  style={{ color: isVeg ? 'white' : '#555' }}
+                >
+                  🥬 Veg
+                </button>
+                <button
+                  className={`toggle-btn ${!isVeg ? 'active' : ''}`}
+                  onClick={() => setMode('nonveg')}
+                  style={{ color: !isVeg ? 'white' : '#555' }}
+                >
+                  🍗 Non-Veg
+                </button>
+              </div>
+            </li>
           </ul>
         </div>
       </div>
